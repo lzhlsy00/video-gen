@@ -387,7 +387,7 @@ export default function Home() {
           <nav className="flex items-center justify-between px-8 py-6">
             <a href="#" className={`text-2xl text-black ${pacifico.className}`}>ArisVideo</a>
             <div className="flex items-center space-x-12">
-              <Link href="/my-videos" className="text-gray-800 hover:text-primary transition-colors">My Videos</Link>
+              <Link href="/my-videos" className="text-gray-800 hover:text-primary transition-colors font-bold">My Videos</Link>
               {/* <a href="#" className="text-gray-800 hover:text-primary transition-colors">Invite&Earn</a> */}
               {/* <a href="#" className="text-gray-800 hover:text-primary transition-colors">Love Letter💗</a> */}
             </div>
@@ -404,11 +404,18 @@ export default function Home() {
                   </button>
                 </div>
               ) : (
-                <Link href="/login">
-                  <button className="px-6 py-2 bg-gradient-to-r from-primary to-secondary text-white rounded-full hover:from-primary/90 hover:to-secondary/90 transition-all">
-                    Log In
-                  </button>
-                </Link>
+                <div className="flex items-center space-x-3">
+                  <Link href="/login">
+                    <button className="px-6 py-2 bg-gradient-to-r from-primary to-secondary text-white rounded-full hover:from-primary/90 hover:to-secondary/90 transition-all">
+                      Log In
+                    </button>
+                  </Link>
+                  <Link href="/login?mode=signup">
+                    <button className="px-6 py-2 bg-gradient-to-r from-primary to-secondary text-white rounded-full hover:from-primary/90 hover:to-secondary/90 transition-all">
+                      Sign Up
+                    </button>
+                  </Link>
+                </div>
               )}
             </div>
           </nav>

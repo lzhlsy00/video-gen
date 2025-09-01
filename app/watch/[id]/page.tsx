@@ -213,7 +213,7 @@ export default function VideoPlayerPage({ params }: { params: Promise<{ id: stri
             
             {/* Breadcrumb */}
             <div className="flex items-center space-x-2 text-sm text-gray-500">
-              <Link href="/my-videos" className="hover:text-gray-700 transition-colors">My Videos</Link>
+              <Link href="/my-videos" className="hover:text-gray-700 transition-colors font-bold">My Videos</Link>
               <i className="ri-arrow-right-s-line"></i>
               
             </div>

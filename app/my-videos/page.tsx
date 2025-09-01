@@ -169,7 +169,7 @@ export default function MyVideos() {
         <nav className="flex items-center justify-between px-8 py-6">
           <Link href="/" className={`text-2xl text-black ${pacifico.className}`}>ArisVideo</Link>
           <div className="flex items-center space-x-12">
-            <Link href="/my-videos" className="text-primary font-medium border-b-2 border-primary">My Videos</Link>
+            <Link href="/my-videos" className="text-primary font-bold border-b-2 border-primary">My Videos</Link>
             {/* <a href="#" className="text-gray-800 hover:text-primary transition-colors">Invite&Earn</a> */}
             {/* <a href="#" className="text-gray-800 hover:text-primary transition-colors">Love Letter💗</a> */}
           </div>

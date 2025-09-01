@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '../../lib/supabase';
 import { Pacifico } from 'next/font/google';
 import Link from 'next/link';
@@ -14,6 +14,7 @@ const pacifico = Pacifico({
 
 export default function Login() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,13 +24,19 @@ export default function Login() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
+    // Check for mode parameter in URL
+    const mode = searchParams.get('mode');
+    if (mode === 'signup') {
+      setIsSignUp(true);
+    }
+    
     // Check if user is already logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         router.push('/');
       }
     });
-  }, [router]);
+  }, [router, searchParams]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
