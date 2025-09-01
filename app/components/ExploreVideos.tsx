@@ -44,7 +44,9 @@ export default function ExploreVideos() {
 
   const getDisplayTitle = (video: Video) => {
     if (video.prompt) {
-      return video.prompt.length > 60 ? `${video.prompt.substring(0, 60)}...` : video.prompt;
+      // Remove datetime stamps like [2025-08-28 18:31:26] from the title
+      const cleanTitle = video.prompt.replace(/\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\]/g, '').trim();
+      return cleanTitle.length > 60 ? `${cleanTitle.substring(0, 60)}...` : cleanTitle;
     }
     return `Video ${video.video_id.substring(0, 8)}...`;
   };
@@ -64,20 +66,8 @@ export default function ExploreVideos() {
     return (
       <div className="py-24 bg-gradient-to-b from-[#FFF5F2] to-white">
         <div className="max-w-7xl mx-auto px-8">
-          <div className="flex justify-between items-center mb-12">
+          <div className="text-center mb-12">
             <h2 className="text-5xl font-bold text-black">Explore Videos</h2>
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <input type="text" placeholder="Search videos" className="w-[300px] px-4 py-2 pr-10 rounded-full bg-white border-2 border-gray-100 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none text-sm text-black" />
-                <i className="ri-search-line absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-              </div>
-              <div className="relative">
-                <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-white border-2 border-gray-100 hover:border-gray-200 text-sm text-black">
-                  <span>Recent</span>
-                  <i className="ri-arrow-down-s-line"></i>
-                </button>
-              </div>
-            </div>
           </div>
           
           {/* Loading skeleton */}
@@ -111,9 +101,10 @@ export default function ExploreVideos() {
   return (
     <div className="py-24 bg-gradient-to-b from-[#FFF5F2] to-white">
       <div className="max-w-7xl mx-auto px-8">
-        <div className="flex justify-between items-center mb-12">
+        <div className="text-center mb-12">
           <h2 className="text-5xl font-bold text-black">Explore Videos</h2>
-          <div className="flex items-center gap-4">
+          {/* Search functionality temporarily disabled */}
+          {/* <div className="flex items-center gap-4">
             <div className="relative">
               <input type="text" placeholder="Search videos" className="w-[300px] px-4 py-2 pr-10 rounded-full bg-white border-2 border-gray-100 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none text-sm text-black" />
               <i className="ri-search-line absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
@@ -124,7 +115,7 @@ export default function ExploreVideos() {
                 <i className="ri-arrow-down-s-line"></i>
               </button>
             </div>
-          </div>
+          </div> */}
         </div>
         
         <div className="grid grid-cols-4 gap-6">
@@ -156,7 +147,7 @@ export default function ExploreVideos() {
                   </div>
                 )}
                 
-                {/* Video duration overlay - we'll estimate based on typical video length */}
+                {/* Video duration overlay */}
                 <span className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
                   {formatDuration(Math.floor(Math.random() * 180) + 60)}
                 </span>
@@ -167,11 +158,7 @@ export default function ExploreVideos() {
                   {getDisplayTitle(video)}
                 </h3>
                 <div className="flex items-center justify-between text-sm text-gray-500">
-                  <div className="flex items-center gap-2">
-                    <span>{getAuthorName(video)}</span>
-                    <span>•</span>
-                    <span>{Math.floor(Math.random() * 5000) + 100} views</span>
-                  </div>
+                  <span>{Math.floor(Math.random() * 5000) + 100} views</span>
                   <span>{Math.floor(Math.random() * 30) + 1} days ago</span>
                 </div>
               </div>
