@@ -387,9 +387,9 @@ export default function Home() {
           <nav className="flex items-center justify-between px-8 py-6">
             <a href="#" className={`text-2xl text-black ${pacifico.className}`}>ArisVideo</a>
             <div className="flex items-center space-x-12">
-              <a href="#" className="text-gray-800 hover:text-primary transition-colors">My Videos</a>
-              <a href="#" className="text-gray-800 hover:text-primary transition-colors">Invite&Earn</a>
-              <a href="#" className="text-gray-800 hover:text-primary transition-colors">Love Letter💗</a>
+              <Link href="/my-videos" className="text-gray-800 hover:text-primary transition-colors">My Videos</Link>
+              {/* <a href="#" className="text-gray-800 hover:text-primary transition-colors">Invite&Earn</a> */}
+              {/* <a href="#" className="text-gray-800 hover:text-primary transition-colors">Love Letter💗</a> */}
             </div>
             <div className="flex items-center">
               {/* Auth component */}
@@ -460,7 +460,8 @@ export default function Home() {
                     
                     {/* Focus highlight effect */}
                     <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-primary/5 to-secondary/5 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-                    <div className="absolute bottom-6 right-6 flex items-center gap-3">
+                    {/* Image upload and voice input buttons - Temporarily hidden */}
+                    {/* <div className="absolute bottom-6 right-6 flex items-center gap-3">
                       <button 
                         type="button" 
                         className="w-12 h-12 flex items-center justify-center rounded-xl bg-white hover:bg-primary/10 border border-gray-200 hover:border-primary/30 transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-105 group"
@@ -475,7 +476,7 @@ export default function Home() {
                       >
                         <i className="ri-mic-line text-xl text-gray-600 group-hover:text-secondary transition-colors"></i>
                       </button>
-                    </div>
+                    </div> */}
                   </div>
                   <button 
                     type="submit" 
@@ -691,8 +692,8 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Video Introduction Section */}
-          <div className="py-24 bg-white">
+          {/* Video Introduction Section - Temporarily hidden */}
+          {/* <div className="py-24 bg-white">
             <div className="max-w-7xl mx-auto px-8">
               <div className="text-center mb-16">
                 <h2 className="text-5xl font-bold mb-6 text-black">Explain Visually, Understand Deeply — With Your Best Explainer Agent</h2>
@@ -702,10 +703,10 @@ export default function Home() {
                 <iframe width="100%" height="600" src="https://www.youtube.com/embed/your-video-id" title="Introducing VideoTutor" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen className="w-full"></iframe>
               </div>
             </div>
-          </div>
+          </div> */}
 
-          {/* Features Section */}
-          <div className="py-24 bg-gradient-to-b from-white to-[#FFF5F2]">
+          {/* Features Section - Temporarily hidden */}
+          {/* <div className="py-24 bg-gradient-to-b from-white to-[#FFF5F2]">
             <div className="max-w-7xl mx-auto px-8">
               <h2 className="text-5xl font-bold text-center mb-20 scale-in text-black">Whether You Teach, Learn, or Create — We've Got You Covered.</h2>
               <div className="grid grid-cols-3 gap-12">
@@ -732,7 +733,7 @@ export default function Home() {
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* How It Works Section */}
           <div className="py-24 bg-white">
@@ -832,8 +833,8 @@ export default function Home() {
             </div>
           </div>
 
-          {/* CTA Section */}
-          <div className="py-16 bg-gradient-to-b from-white to-[#FFF5F2]">
+          {/* CTA Section - Temporarily hidden */}
+          {/* <div className="py-16 bg-gradient-to-b from-white to-[#FFF5F2]">
             <div className="max-w-7xl mx-auto px-8">
               <div id="refer-earn" className="bg-white rounded-3xl shadow-lg p-12 relative overflow-hidden mx-auto max-w-5xl scale-in">
                 <div className="flex flex-col items-center text-center mb-12">
@@ -888,7 +889,7 @@ export default function Home() {
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Footer */}
           <footer className="bg-[#FFF5F2] pt-24 pb-12">

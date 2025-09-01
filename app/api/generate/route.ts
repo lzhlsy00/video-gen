@@ -74,11 +74,21 @@ export async function POST(request: NextRequest) {
 
     const url = API_CONFIG.VIDEO_GENERATION_ENDPOINT;
     console.log('url', url)
+    
+    // Prepare headers for backend request
+    const backendHeaders: any = {
+      'Content-Type': 'application/json',
+    };
+    
+    // Forward authentication to backend if available
+    if (authHeader) {
+      console.log('Forwarding auth header to backend');
+      backendHeaders['Authorization'] = authHeader;
+    }
+    
     const response = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: backendHeaders,
       body: JSON.stringify(payload),
     });
 

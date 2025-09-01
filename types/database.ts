@@ -2,7 +2,8 @@ export interface Video {
   id: string
   video_id: string
   video_url: string | null
-  created_at: string
+  user_name: string | null
+  prompt: string | null
 }
 
 export interface Status {
