@@ -28,6 +28,10 @@ export default function Home() {
   const [isVisible, setIsVisible] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [prompt, setPrompt] = useState('');
+  const [fileContext, setFileContext] = useState<string>('');
+  const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isProcessingFiles, setIsProcessingFiles] = useState(false);
 
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -106,6 +110,115 @@ export default function Home() {
     return () => subscription.unsubscribe();
   }, []);
 
+  const handleFileUpload = async (files: FileList) => {
+    if (!files || files.length === 0) return;
+    
+    const maxSize = 50 * 1024 * 1024; // 50MB
+    const supportedTypes = [
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/msword',
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'image/bmp',
+      'image/tiff',
+      'text/plain'
+    ];
+
+    // Validate files
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (file.size > maxSize) {
+        setError(`File ${file.name} is too large (max 50MB)`);
+        return;
+      }
+      if (!supportedTypes.includes(file.type)) {
+        setError(`File type ${file.type} is not supported`);
+        return;
+      }
+    }
+
+    setIsProcessingFiles(true);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      for (let i = 0; i < files.length; i++) {
+        formData.append('files', files[i]);
+      }
+
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers: any = {};
+      
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        headers,
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || `Upload failed: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      setUploadedFiles(result.files);
+      
+      if (result.combined_text) {
+        setFileContext(result.combined_text);
+      }
+
+    } catch (error) {
+      console.error('File upload error:', error);
+      setError(error instanceof Error ? error.message : 'File upload failed');
+    } finally {
+      setIsProcessingFiles(false);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (!isSubmitting && !isProcessingFiles) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    // Only set dragging to false if we're actually leaving the textarea container
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setIsDragging(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    if (isSubmitting || isProcessingFiles) return;
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      handleFileUpload(files);
+    }
+  };
+
+  const clearUploadedFiles = () => {
+    setUploadedFiles([]);
+    setFileContext('');
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
   const generateVideo = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!prompt.trim()) return;
@@ -141,7 +254,9 @@ export default function Home() {
           prompt: prompt.trim(),
           include_audio: true,
           voice: 'nova',
-          sync_method: 'timing_analysis'
+          language: /[\u4e00-\u9fff]/.test(prompt) ? 'zh' : 'en',
+          sync_method: 'timing_analysis',
+          uploaded_files_context: fileContext || undefined
         }),
       });
 
@@ -450,21 +565,84 @@ export default function Home() {
               {/* Search Bar */}
               <div className="relative w-full max-w-4xl mx-auto mb-16">
                 <form onSubmit={generateVideo} className="relative flex flex-col items-center gap-6 transition-all duration-500">
-                  <div className="relative w-full group">
+                  <div 
+                    className="relative w-full group"
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                  >
                     <textarea 
                       value={prompt} 
                       onChange={(e) => setPrompt(e.target.value)} 
-                      placeholder="Enter your question (e.g. How do I solve quadratic equations)" 
-                      className="w-full min-h-[160px] p-8 text-xl text-black bg-white rounded-3xl shadow-lg border-2 border-primary hover:border-primary/80 focus:border-primary focus:ring-4 focus:ring-primary/20 focus:outline-none resize-none transition-all duration-300 disabled:bg-gray-50 disabled:border-gray-300 disabled:cursor-not-allowed placeholder:text-gray-400"
-
+                      placeholder="Enter your question (e.g. How do I solve quadratic equations) or drag files here..." 
+                      className={`w-full min-h-[160px] p-8 pb-14 text-xl text-black bg-white rounded-3xl shadow-lg border-2 transition-all duration-300 disabled:bg-gray-50 disabled:border-gray-300 disabled:cursor-not-allowed placeholder:text-gray-400 resize-none focus:ring-4 focus:ring-primary/20 focus:outline-none ${
+                        isDragging 
+                          ? 'border-primary bg-primary/5 border-dashed' 
+                          : 'border-primary hover:border-primary/80 focus:border-primary'
+                      }`}
+                      disabled={isSubmitting || isProcessingFiles}
                     ></textarea>
                     
-                    {/* Character count and validation */}
-                    <div className="absolute bottom-2 left-4 text-sm text-gray-500">
-                      <span className={prompt.length > 500 ? 'text-red-500' : 'text-gray-500'}>
-                        {prompt.length}/500 characters
-                      </span>
+                    {/* Character count and file upload button */}
+                    <div className="absolute bottom-2 left-4 right-4 flex items-center justify-between text-sm">
+                      <div className="text-gray-500">
+                        <span className={prompt.length > 500 ? 'text-red-500' : 'text-gray-500'}>
+                          {prompt.length}/500 characters
+                        </span>
+                        {fileContext && (
+                          <span className="ml-4 text-primary font-medium">
+                            + {Math.round(fileContext.length / 100)} KB file context
+                          </span>
+                        )}
+                      </div>
+                      
+                      {/* File upload button */}
+                      <div className="flex items-center gap-2">
+                        {isProcessingFiles && (
+                          <div className="flex items-center gap-2 text-primary">
+                            <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                            <span className="text-xs">Processing...</span>
+                          </div>
+                        )}
+                        <input
+                          type="file"
+                          multiple
+                          accept=".pdf,.docx,.doc,.jpg,.jpeg,.png,.gif,.bmp,.tiff,.txt"
+                          onChange={(e) => e.target.files && handleFileUpload(e.target.files)}
+                          className="hidden"
+                          id="file-upload"
+                          disabled={isSubmitting || isProcessingFiles}
+                        />
+                        <label 
+                          htmlFor="file-upload"
+                          className={`cursor-pointer p-2 transition-all duration-200 z-20 relative ${
+                            isSubmitting || isProcessingFiles
+                              ? 'text-gray-400 cursor-not-allowed'
+                              : 'text-gray-500 hover:text-primary'
+                          }`}
+                          title="Upload files (PDF, Word, Images, Text)"
+                        >
+                          <span className="text-3xl">+</span>
+                        </label>
+                      </div>
                     </div>
+                    
+                    {/* Drag overlay */}
+                    {isDragging && (
+                      <div className="absolute inset-0 rounded-3xl bg-primary/10 border-2 border-primary border-dashed flex items-center justify-center pointer-events-none z-10">
+                        <div className="bg-white rounded-2xl p-6 shadow-lg border border-primary/20">
+                          <div className="text-primary text-lg font-medium flex items-center gap-3">
+                            <i className="ri-upload-cloud-2-line text-3xl"></i>
+                            <div>
+                              <div className="font-bold">Drop files here</div>
+                              <div className="text-sm text-gray-600 font-normal">
+                                PDF, Word, Images, Text files
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                     
                     {/* Focus highlight effect */}
                     <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-primary/5 to-secondary/5 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
@@ -486,17 +664,60 @@ export default function Home() {
                       </button>
                     </div> */}
                   </div>
+                  
+                  {/* Uploaded Files Display */}
+                  {uploadedFiles.length > 0 && (
+                    <div className="w-full bg-gray-50 rounded-2xl p-4 border border-gray-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                          <i className="ri-attachment-line"></i>
+                          <span>Uploaded Files ({uploadedFiles.length})</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={clearUploadedFiles}
+                          className="text-xs text-red-600 hover:text-red-800 font-medium flex items-center gap-1"
+                          disabled={isSubmitting || isProcessingFiles}
+                        >
+                          <i className="ri-delete-bin-line"></i>
+                          Clear all
+                        </button>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2">
+                        {uploadedFiles.map((file, index) => (
+                          <div key={index} className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 border border-gray-200">
+                            <i className={`text-sm ${
+                              file.content_type.includes('pdf') ? 'ri-file-pdf-line text-red-500' :
+                              file.content_type.includes('word') || file.content_type.includes('document') ? 'ri-file-word-line text-blue-500' :
+                              file.content_type.includes('image') ? 'ri-image-line text-green-500' :
+                              'ri-file-text-line text-gray-500'
+                            }`}></i>
+                            <span className="text-xs font-medium text-gray-700 truncate max-w-[120px]">
+                              {file.filename}
+                            </span>
+                            {file.extracted_text ? (
+                              <i className="ri-check-line text-xs text-green-500" title="Text extracted"></i>
+                            ) : (
+                              <i className="ri-close-line text-xs text-gray-400" title="No text found"></i>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
                   <button 
                     type="submit" 
-                    disabled={!prompt.trim() || isSubmitting || !user}
+                    disabled={!prompt.trim() || isSubmitting || isProcessingFiles || !user}
                     className={`px-12 py-4 rounded-full font-bold transition-all whitespace-nowrap text-lg relative overflow-hidden ${
-                      isSubmitting
+                      isSubmitting || isProcessingFiles
                         ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg cursor-not-allowed transform scale-95'
                         : user
                         ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-xl hover:shadow-2xl transform hover:scale-105'
                         : 'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-600 cursor-not-allowed shadow-lg'
                     } ${
-                      (!prompt.trim() || isSubmitting || !user)
+                      (!prompt.trim() || isSubmitting || isProcessingFiles || !user)
                         ? 'cursor-not-allowed transform-none'
                         : 'hover:from-primary/90 hover:to-secondary/90'
                     }`}
@@ -506,6 +727,11 @@ export default function Home() {
                         <>
                           <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                           <span>Creating Video...</span>
+                        </>
+                      ) : isProcessingFiles ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <span>Processing Files...</span>
                         </>
                       ) : !user ? (
                         <>
@@ -522,8 +748,6 @@ export default function Home() {
                     </div>
                   </button>
                 </form>
-
-
 
                 {/* Error Display */}
                 {error && (
@@ -656,6 +880,8 @@ export default function Home() {
                           setVideoUrl(null);
                           setPrompt('');
                           setError(null);
+                          setUploadedFiles([]);
+                          setFileContext('');
                         }}
                         className="px-8 py-3 text-primary hover:text-white bg-white hover:bg-primary border-2 border-primary rounded-full font-bold transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
                       >
@@ -851,7 +1077,7 @@ export default function Home() {
           </div> */}
 
           {/* Footer */}
-          <footer className="bg-[#FFF5F2] pt-24 pb-12">
+          {/* <footer className="bg-[#FFF5F2] pt-24 pb-12">
             <div className="max-w-7xl mx-auto px-8">
               <div className="grid grid-cols-4 gap-12 mb-16">
                 <div>
@@ -910,7 +1136,7 @@ export default function Home() {
                 </div>
               </div>
             </div>
-          </footer>
+          </footer> */}
         </div>
       </div>
     </>

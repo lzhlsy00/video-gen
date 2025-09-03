@@ -40,17 +40,28 @@ export async function GET(request: NextRequest) {
     // Call backend API to get user's videos
     const backendUrl = `${API_CONFIG.VIDEO_GENERATION_ENDPOINT.replace('/generate', '')}/videos/user/${encodeURIComponent(userName)}`;
     
+    console.log('My Videos API - Backend URL:', backendUrl);
+    console.log('My Videos API - API_CONFIG.VIDEO_GENERATION_ENDPOINT:', API_CONFIG.VIDEO_GENERATION_ENDPOINT);
+    console.log('My Videos API - User name:', userName);
+    
     const response = await fetch(backendUrl, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
+      // Add timeout
+      signal: AbortSignal.timeout(30000) // 30 seconds timeout
     });
 
+    console.log('My Videos API - Response status:', response.status);
+    console.log('My Videos API - Response ok:', response.ok);
+
     if (!response.ok) {
+      const responseText = await response.text().catch(() => 'Could not read response');
       console.error('Backend API error:', response.status, response.statusText);
+      console.error('Backend API response:', responseText);
       return NextResponse.json(
-        { error: `Failed to fetch videos: ${response.statusText}` },
+        { error: `Failed to fetch videos: ${response.statusText}`, details: responseText },
         { status: response.status }
       );
     }
@@ -65,8 +76,10 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('My Videos API route error:', error);
+    console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

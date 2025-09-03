@@ -9,6 +9,7 @@ interface GenerateVideoRequest {
   voice?: string;
   language?: string;
   sync_method?: string;
+  uploaded_files_context?: string;
 }
 
 interface VideoResponse {
@@ -69,7 +70,8 @@ export async function POST(request: NextRequest) {
       include_audio: body.include_audio ?? API_CONFIG.DEFAULT_SETTINGS.include_audio,
       voice: body.voice || API_CONFIG.DEFAULT_SETTINGS.voice,
       language: body.language || API_CONFIG.DEFAULT_SETTINGS.language,
-      sync_method: body.sync_method || API_CONFIG.DEFAULT_SETTINGS.sync_method
+      sync_method: body.sync_method || API_CONFIG.DEFAULT_SETTINGS.sync_method,
+      uploaded_files_context: body.uploaded_files_context || undefined
     };
 
     const url = API_CONFIG.VIDEO_GENERATION_ENDPOINT;

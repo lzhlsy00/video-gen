@@ -21,13 +21,19 @@ export default function ExploreVideos() {
       try {
         const response = await fetch('/api/explore-videos');
         if (!response.ok) {
-          throw new Error('Failed to fetch videos');
+          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+          console.error('API Error Response:', errorData);
+          throw new Error(`Failed to fetch videos: ${response.status} ${response.statusText}`);
         }
         const data = await response.json();
         setVideos(data.videos || []);
       } catch (err) {
         console.error('Error fetching explore videos:', err);
-        setError('Failed to load videos');
+        console.error('Error details:', err instanceof Error ? err.message : 'Unknown error');
+        setError('Failed to load videos. Please try again later.');
+        
+        // Fallback: Use empty array to show "no videos" state instead of breaking the UI
+        setVideos([]);
       } finally {
         setLoading(false);
       }
@@ -87,12 +93,22 @@ export default function ExploreVideos() {
     );
   }
 
-  if (error) {
+  if (error || videos.length === 0) {
     return (
       <div className="py-24 bg-gradient-to-b from-[#FFF5F2] to-white">
         <div className="max-w-7xl mx-auto px-8 text-center">
           <h2 className="text-5xl font-bold text-black mb-8">Explore Videos</h2>
-          <p className="text-gray-600">{error}</p>
+          {error ? (
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-6 max-w-md mx-auto">
+              <div className="flex items-center gap-3 mb-2">
+                <i className="ri-error-warning-line text-orange-600 text-xl"></i>
+                <p className="text-orange-800 font-medium">Videos temporarily unavailable</p>
+              </div>
+              <p className="text-orange-700 text-sm">We're working to restore this feature. Please try again later.</p>
+            </div>
+          ) : (
+            <p className="text-gray-600">No videos available at the moment.</p>
+          )}
         </div>
       </div>
     );
