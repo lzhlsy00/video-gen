@@ -14,6 +14,8 @@ const pacifico = Pacifico({
   weight: '400',
   subsets: ['latin'],
   display: 'swap',
+  fallback: ['cursive'],
+  adjustFontFallback: false,
 });
 
 interface VideoResponse {
@@ -221,13 +223,14 @@ export default function Home() {
 
   const generateVideo = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!prompt.trim()) return;
     
-    // Check if user is logged in
+    // Check if user is logged in - redirect to login if not logged in
     if (!user) {
-      setError('Please log in to create videos. Click the "Log In" button to get started.');
+      router.push('/login');
       return;
     }
+    
+    if (!prompt.trim()) return;
     
     setIsSubmitting(true);
     setError(null);
@@ -709,15 +712,13 @@ export default function Home() {
                   
                   <button 
                     type="submit" 
-                    disabled={!prompt.trim() || isSubmitting || isProcessingFiles || !user}
+                    disabled={user ? (!prompt.trim() || isSubmitting || isProcessingFiles) : (isSubmitting || isProcessingFiles)}
                     className={`px-12 py-4 rounded-full font-bold transition-all whitespace-nowrap text-lg relative overflow-hidden ${
                       isSubmitting || isProcessingFiles
                         ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg cursor-not-allowed transform scale-95'
-                        : user
-                        ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-xl hover:shadow-2xl transform hover:scale-105'
-                        : 'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-600 cursor-not-allowed shadow-lg'
+                        : 'bg-gradient-to-r from-primary to-secondary text-white shadow-xl hover:shadow-2xl transform hover:scale-105'
                     } ${
-                      (!prompt.trim() || isSubmitting || isProcessingFiles || !user)
+                      (user ? (!prompt.trim() || isSubmitting || isProcessingFiles) : (isSubmitting || isProcessingFiles))
                         ? 'cursor-not-allowed transform-none'
                         : 'hover:from-primary/90 hover:to-secondary/90'
                     }`}
@@ -732,11 +733,6 @@ export default function Home() {
                         <>
                           <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                           <span>Processing Files...</span>
-                        </>
-                      ) : !user ? (
-                        <>
-                          <i className="ri-lock-line text-xl"></i>
-                          <span>Log In to Create Video</span>
                         </>
                       ) : (
                         <>
